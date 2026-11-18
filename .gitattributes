@@ -1,0 +1,8 @@
+# Keep the repository LF-normalized; the plugin is loaded by Node, which does
+# not care, but a stable diff does.
+* text=auto eol=lf
+
+*.webp binary
+*.png binary
+*.jpg binary
+*.jpeg binary

@@ -1,0 +1,22 @@
+# Node / package managers (DSH links the bundle; nothing here is needed to run it)
+node_modules/
+.pnpm-store/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Python caches from tools/
+__pycache__/
+*.pyc
+.venv/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Local scratch
+*.log
+_probe/

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Illustration wallpaper",
+    "description": "Paints an illustration as the wallpaper of every page — the sidebar, the transcript, and each session — and turns the working surfaces into translucent glass over it: transparent blue-grey sidebar, see-through chat area, lightly tinted bubbles, a light-blue glass composer, and high-transparency toolbar, terminal, and diff panels. Text and icons stay opaque. In Settings → General → Illustration wallpaper: Wallpaper on/off, Water-blue tint (palette sampled from the artwork) on/off, and a Strength slider — higher strength means more transparent panels and a clearer picture. Menus and popovers keep a solid fill. Turning the plugin off restores the stock opaque UI. Ships with a generated placeholder gradient; add your own artwork under lib/assets/ — see the repository README."
+  }
+}

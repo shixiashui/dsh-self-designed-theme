@@ -1,0 +1,15 @@
+# ============================================================================
+# dsh-self-designed-theme — bundle patch
+# ----------------------------------------------------------------------------
+# Inserts the self-designed theme row into the active profile. The browser half
+# owns every visual decision; the Host half only declares the live (volatile)
+# configuration fields that the General settings row reads and writes.
+# ============================================================================
+
+- insert:
+    - id: self-designed-theme
+      name: dsh-self-designed-theme
+      config:
+        backdrop: true
+        palette: true
+        intensity: 70

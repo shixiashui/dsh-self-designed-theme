@@ -1,9 +1,26 @@
 {
   "name": "dsh-self-designed-theme",
   "version": "1.0.0",
-  "private": true,
   "type": "module",
   "description": "Illustration wallpaper for every DeepSeek Harness page, with translucent glass panels and a palette derived from the artwork.",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "theme",
+    "wallpaper",
+    "background",
+    "glassmorphism",
+    "ui-plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shixiashui/dsh-self-designed-theme.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shixiashui/dsh-self-designed-theme/issues"
+  },
+  "homepage": "https://github.com/shixiashui/dsh-self-designed-theme#readme",
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",

@@ -42,6 +42,12 @@ window.__ModuleLoader__.load({
       ? require.asset(BACKDROP_REF)
       : BACKDROP_REF;
 
+    const IMAGE_KEY = 'dsh-self-designed-theme.wallpaper';
+    const IMAGE_EVENT = 'dsh-self-designed-theme:wallpaper-changed';
+    const MAX_BYTES = 2 * 1024 * 1024;
+    const IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+    const imagePattern = /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/;
+
     // ----------------------------------------------------------------- styles
     /**
      * The wallpaper itself: the original image, unmodified, viewport-fixed,
@@ -53,16 +59,17 @@ window.__ModuleLoader__.load({
      */
     const WALLPAPER_CSS = `
 html.pcx-wallpaper {
-  background-image: url("${BACKDROP}");
+  background-image: var(--pcx-wallpaper-image, url("${BACKDROP}"));
   background-position: center;
-  background-size: cover;
+  background-size: var(--pcx-wallpaper-size, cover);
   background-repeat: no-repeat;
   background-attachment: fixed;
 }
 html.pcx-wallpaper:has(body[data-ds-dark-theme]) {
+  background-size: cover, var(--pcx-wallpaper-size, cover);
   background-image:
     linear-gradient(rgba(11, 15, 18, 0.5), rgba(11, 15, 18, 0.5)),
-    url("${BACKDROP}");
+    var(--pcx-wallpaper-image, url("${BACKDROP}"));
 }
 
 /* The terminal is an xterm canvas. The host reads its screen element's
@@ -121,8 +128,9 @@ html.pcx-wallpaper:has(body[data-ds-dark-theme]) :is(div:has(> .xterm), .xterm, 
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 18px;
-  flex: none;
+  max-width: 100%;
 }
+.pcx-controls input[type=file] { display: block; max-width: 100%; }
 .pcx-field {
   display: flex;
   align-items: center;
@@ -414,6 +422,58 @@ html.pcx-wallpaper:has(body[data-ds-dark-theme]) :is(div:has(> .xterm), .xterm, 
       );
     }
 
+    function ImageControls({ t }) {
+      const [message, setMessage] = React.useState('');
+      const revision = React.useRef(0);
+      React.useEffect(() => () => { revision.current++; }, []);
+
+      async function choose(event) {
+        const file = event.target.files[0];
+        event.target.value = '';
+        if (!file) return;
+        const request = ++revision.current;
+        if (!IMAGE_TYPES.includes(file.type) || file.size > MAX_BYTES) {
+          setMessage('row.invalid');
+          return;
+        }
+        try {
+          const reader = new FileReader();
+          const data = await new Promise((resolve, reject) => {
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(file);
+          });
+          const preview = new Image();
+          preview.src = data;
+          await preview.decode();
+          if (revision.current !== request) return;
+          localStorage.setItem(IMAGE_KEY, data);
+          window.dispatchEvent(new Event(IMAGE_EVENT));
+          setMessage('row.saved');
+        } catch {
+          if (revision.current === request) setMessage('row.failed');
+        }
+      }
+
+      function reset() {
+        revision.current++;
+        try {
+          localStorage.removeItem(IMAGE_KEY);
+          window.dispatchEvent(new Event(IMAGE_EVENT));
+          setMessage('row.restored');
+        } catch {
+          setMessage('row.storageError');
+        }
+      }
+
+      return h('div', { className: 'pcx-controls' },
+        h('label', { className: 'pcx-fieldLabel' }, t('row.image'),
+          h('input', { type: 'file', accept: IMAGE_TYPES.join(','), onChange: choose })),
+        h('button', { type: 'button', onClick: reset }, t('row.reset')),
+        h('span', { role: 'status', className: 'pcx-desc' }, message && t(message)),
+      );
+    }
+
     /** The General settings row: wallpaper, derived palette, and strength. */
     function SettingsRow({ t }) {
       const settings = React.useSyncExternalStore(store.subscribe, store.get);
@@ -429,6 +489,7 @@ html.pcx-wallpaper:has(body[data-ds-dark-theme]) :is(div:has(> .xterm), .xterm, 
         h(
           'div',
           { className: 'pcx-controls' },
+          h(ImageControls, { t }),
           h(
             Field,
             { label: t('row.backdrop') },
@@ -471,6 +532,13 @@ html.pcx-wallpaper:has(body[data-ds-dark-theme]) :is(div:has(> .xterm), .xterm, 
     // ----------------------------------------------------------------- locale
     const DICTIONARIES = {
       en: {
+        'row.image': 'Local image (PNG, JPEG or WebP, up to 2 MiB)',
+        'row.reset': 'Restore default',
+        'row.invalid': 'Choose a PNG, JPEG or WebP up to 2 MiB.',
+        'row.saved': 'Wallpaper saved.',
+        'row.failed': 'Could not read or save the image. Try a smaller, valid image.',
+        'row.restored': 'Default restored.',
+        'row.storageError': 'Could not access local storage.',
         'row.title': 'Illustration wallpaper',
         'row.description':
           'The illustration behind every page, with translucent glass panels. Strength: higher means a clearer picture.',
@@ -479,6 +547,13 @@ html.pcx-wallpaper:has(body[data-ds-dark-theme]) :is(div:has(> .xterm), .xterm, 
         'row.intensity': 'Strength',
       },
       zh: {
+        'row.image': '本地图片（PNG、JPEG 或 WebP，最大 2 MiB）',
+        'row.reset': '恢复默认壁纸',
+        'row.invalid': '请选择 2 MiB 以内的 PNG、JPEG 或 WebP 图片。',
+        'row.saved': '壁纸已保存。',
+        'row.failed': '读取或保存失败，请尝试较小的有效图片。',
+        'row.restored': '已恢复默认壁纸。',
+        'row.storageError': '无法访问本地存储。',
         'row.title': '自定义插画壁纸',
         'row.description':
           '插画铺在所有页面背后，各面板变为半透明玻璃。强度越高，画面越清晰。',
@@ -513,6 +588,35 @@ html.pcx-wallpaper:has(body[data-ds-dark-theme]) :is(div:has(> .xterm), .xterm, 
 
         ctx.effect(() => ctx.locale.register(LOCALE_NS, DICTIONARIES), 'self-designed-theme: locale');
         ctx.effect(() => insertStyles(CSS), 'self-designed-theme: styles');
+
+        ctx.effect(() => {
+          const style = document.documentElement.style;
+          function clearImage() {
+            style.removeProperty('--pcx-wallpaper-image');
+            style.removeProperty('--pcx-wallpaper-size');
+          }
+          function loadImage() {
+            let data;
+            try { data = localStorage.getItem(IMAGE_KEY); } catch { /* Storage may be disabled. */ }
+            if (data && imagePattern.test(data)) {
+              style.setProperty('--pcx-wallpaper-image', `url("${data}")`);
+              style.setProperty('--pcx-wallpaper-size', 'contain');
+            } else {
+              clearImage();
+            }
+          }
+          function onStorage(event) {
+            if (event.key === IMAGE_KEY || event.key === null) loadImage();
+          }
+          loadImage();
+          window.addEventListener(IMAGE_EVENT, loadImage);
+          window.addEventListener('storage', onStorage);
+          return () => {
+            window.removeEventListener(IMAGE_EVENT, loadImage);
+            window.removeEventListener('storage', onStorage);
+            clearImage();
+          };
+        }, 'self-designed-theme: local image');
 
         // Wallpaper class on <html> and the glass token layer, both following
         // the live preferences. The layer is restamped only when a value that

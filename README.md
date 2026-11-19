@@ -6,7 +6,7 @@ A visual plugin for [DeepSeek Harness](https://github.com/deepseek-ai) (DSH) tha
 
 English | [中文](#中文)
 
-> ⚠️ **What this repository ships.** The wallpaper is a **generated placeholder gradient** in a water-blue palette (5.7 KB, original, no copyright encumbrance). It is *not* the *PaperCranes1847* illustration that the design was built around — that artwork carries the artist's watermark and is not redistributed here. Drop your own image into `lib/assets/` to get the full effect; see [Customizing the artwork](#customizing-the-artwork).
+> ⚠️ **What this repository ships.** The wallpaper is a **generated placeholder gradient** in a water-blue palette (5.7 KB, original, no copyright encumbrance). It is *not* the *PaperCranes1847* illustration that the design was built around — that artwork carries the artist's watermark and is not redistributed here. Choose your own image in Settings; see [Customizing the artwork](#customizing-the-artwork).
 
 ---
 
@@ -25,7 +25,7 @@ What you should see:
 
 | Area | Effect |
 |---|---|
-| Background | Your artwork, **unmodified**, `cover`-cropped and viewport-fixed behind every page |
+| Background | Your artwork, **unmodified**, fitted in full for local images (bundled gradient fills the viewport) and viewport-fixed behind every page |
 | Left sidebar | Transparent blue-grey |
 | Transcript | Fully see-through |
 | Chat bubbles | Very light tint |
@@ -84,11 +84,12 @@ Then **Settings → Plugins → Add plugin** and point it at the cloned director
 
 | Control | Meaning |
 |---|---|
+| Local image / Restore default | Choose a PNG, JPEG or WebP up to 2 MiB, or return to the bundled gradient |
 | Wallpaper | Master switch: the image plus the glass layer. Off restores the stock opaque UI |
 | Water-blue tint | Glass tinted with the palette sampled from the artwork, vs. the stock neutral palette at the same alphas |
 | Strength (10–100%) | Higher = more transparent panels = a clearer picture. Default 70 |
 
-Changes apply live and persist in your profile's `cordis.patch.yml`:
+The image stays in local browser storage for this DSH origin. It survives reloads and is removed when you restore the default or clear site data. The other controls apply live and persist in your profile's `cordis.patch.yml`:
 
 ```yaml
 - insert:
@@ -111,7 +112,9 @@ Changes apply live and persist in your profile's `cordis.patch.yml`:
 
 ## Customizing the artwork
 
-The bundled placeholder is a generated gradient. To use your own picture:
+For personal use, choose a local file under **Settings → General → Illustration wallpaper**. The picture keeps its aspect ratio and fits entirely inside the window.
+
+To replace the bundled default when developing a fork:
 
 1. Convert it to WebP and name it `backdrop.webp` under `lib/assets/` (anything `.svg`, `.png`, `.webp`, `.jpg`, or `.jpeg` is served through the asset route; keep it under ~5 MB).
 2. Run the finalize script from the repository root:
@@ -162,9 +165,9 @@ LICENSE             MIT (code and generated placeholder)
 > 随包图片是为本仓库**生成的占位渐变**（水蓝色调，可自由再分发），不含任何第三方插画。想换成自己的图见下文"换图"。
 
 - **安装**：在 DSH 会话里让 agent 装（`github:shixiashui/dsh-self-designed-theme`），或 **设置 → 插件 → 添加插件** 指向本地 clone。桌面端不能用 CLI 的 `--profile desktop`，请走会话内 agent 或本地目录。
-- **使用**：设置 → 常规 → 自定义插画壁纸。三个控件：壁纸总开关、水蓝染色开关、强度滑杆（越高画面越清晰，默认 70）。
+- **使用**：设置 → 常规 → 自定义插画壁纸。可以选择本地图片、恢复默认壁纸，也可以调整壁纸总开关、水蓝染色开关、强度滑杆（越高画面越清晰，默认 70）。
 - **原理**：壁纸画在 `html` 上；玻璃是一层 `overrideTokens`，约 29 个文档化 token 变 `rgba()`，浅深双值都给；文字/边框/强调色永不做透明。侧栏必须保持"颜色"而非渐变，因为宿主把它喂给 `color-mix()`。
-- **换图**：把自己的图转成 webp 放进 `lib/assets/backdrop.webp`，跑 `python tools/finalize-asset.py`，把打印出的 reference 填进 `client.js` 的 `BACKDROP_REF`，重启 Host。
+- **换图**：在设置中选择 2 MiB 以内的 PNG、JPEG 或 WebP，原图将等比完整显示。图片仅保存在当前 DSH 站点的本地存储中，刷新后仍可使用。
 - **版权**：MIT 覆盖代码与占位图；原设计参考的第三方插画（带水印）**不在本仓库内**，未经授权请勿分发。
 
 ## License
